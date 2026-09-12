@@ -37,7 +37,11 @@ def send_execution_email(exit_status):
         return
 
     status_text = "PASSED" if exit_status == 0 else "FAILED"
-    status_color = "#28a745" if exit_status == 0 else "#dc3545"
+    
+    # Contadores globais baseados nos vestígios guardados
+    total_executed = max(len(SESSION_DATA["api_traces"]), 1)
+    failed_count = len(SESSION_DATA["failure_logs"])
+    passed_count = max(total_executed - failed_count, 0)
 
     # Gerar análise da IA se houver registos de erro ou se a execução falhou
     ai_section_html = ""
@@ -45,50 +49,96 @@ def send_execution_email(exit_status):
         combined_logs = "\n".join(SESSION_DATA["failure_logs"])
         ai_summary = generate_root_cause_analysis(combined_logs)
         ai_section_html = f"""
-        <div style="border-left: 4px solid #dc3545; background: #fff5f5; padding: 12px; margin-bottom: 20px; border-radius: 0 4px 4px 0;">
-            <h4 style="margin: 0 0 6px 0; color: #c53030;">🤖 AI Root-Cause Analysis (Gemini)</h4>
-            <p style="margin: 0; font-size: 13px; color: #2d3748; white-space: pre-line;">{ai_summary}</p>
+        <div style="border-left: 4px solid #c53030; background: #fff5f5; padding: 12px 16px; margin-bottom: 24px; border-radius: 0 4px 4px 0;">
+            <h4 style="margin: 0 0 6px 0; color: #c53030; font-size: 14px;">🤖 AI Root-Cause Analysis (Gemini)</h4>
+            <p style="margin: 0; font-size: 13px; color: #2d3748; white-space: pre-line; line-height: 1.4;">{ai_summary}</p>
         </div>
         """
 
-    traces_html = ""
-    for index, trace in enumerate(SESSION_DATA["api_traces"], start=1):
-        badge_color = "#28a745" if 200 <= trace['status_code'] < 300 else "#dc3545"
-        traces_html += f"""
-        <div style="border: 1px solid #ddd; border-radius: 6px; padding: 12px; margin-bottom: 12px; background: #fdfdfd; font-family: monospace; font-size: 12px;">
-            <p style="margin: 0 0 8px 0;"><b>[{index}] {trace['method']}</b> <span style="color: #0066cc;">{trace['url']}</span></p>
-            <p style="margin: 0 0 8px 0;"><b>Status Code:</b> <span style="background: {badge_color}; color: white; padding: 2px 6px; border-radius: 3px;">{trace['status_code']}</span></p>
-            <p style="margin: 0 0 4px 0;"><b>Request Payload / Params:</b></p>
-            <pre style="background: #f1f1f1; padding: 8px; border-radius: 4px; overflow-x: auto; margin: 0 0 8px 0;">{trace['request_payload']}</pre>
-            <p style="margin: 0 0 4px 0;"><b>Response Body:</b></p>
-            <pre style="background: #f1f1f1; padding: 8px; border-radius: 4px; overflow-x: auto; margin: 0;">{trace['response_body']}</pre>
-        </div>
-        """
+    # Construção das linhas da tabela inspiradas no design fornecido
+    rows_html = ""
+    if SESSION_DATA["api_traces"]:
+        for trace in SESSION_DATA["api_traces"]:
+            is_success = 200 <= trace['status_code'] < 400
+            result_label = "PASSED" if is_success else "FAILED"
+            badge_bg = "#c6f6d5" if is_success else "#fed7d7"
+            badge_color = "#22543d" if is_success else "#9b2c2c"
+            
+            error_reason = "-" if is_success else f"HTTP {trace['status_code']} Error"
 
-    if not traces_html:
-        traces_html = "<p style='color: #666;'>No API traces recorded during this execution.</p>"
+            rows_html += f"""
+            <tr style="border-bottom: 1px solid #edf2f7;">
+                <td style="padding: 12px; vertical-align: top;">
+                    <strong style="color: #2d3748; font-size: 13px;">{trace['method']} - {trace['url']}</strong><br>
+                    <div style="background-color: #edf2f7; border-left: 3px solid #3182ce; padding: 8px 10px; margin-top: 8px; font-family: monospace; font-size: 11px; color: #2d3748; border-radius: 2px;">
+                        <b>Payload:</b> {trace['request_payload']}<br>
+                        <b>Response:</b> {trace['response_body']}
+                    </div>
+                </td>
+                <td style="padding: 12px; vertical-align: middle; white-space: nowrap;">
+                    <span style="background-color: {badge_bg}; color: {badge_color}; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;">{result_label}</span>
+                </td>
+                <td style="padding: 12px; vertical-align: middle; color: #718096; font-size: 13px;">
+                    {error_reason}
+                </td>
+            </tr>
+            """
+    else:
+        rows_html = """
+        <tr>
+            <td colspan="3" style="padding: 20px; text-align: center; color: #718096; font-size: 13px;">
+                No API traces or test items recorded during this execution.
+            </td>
+        </tr>
+        """
 
     html_content = f"""
+    <!DOCTYPE html>
     <html>
-    <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.5;">
-        <div style="max-width: 750px; margin: auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px; background: #ffffff;">
-            <h2 style="border-bottom: 2px solid #eaeaea; padding-bottom: 10px; margin-top: 0;">FP&A Automation Report</h2>
-            <p style="font-size: 14px;"><b>Overall Status:</b> <span style="color: {status_color}; font-weight: bold; font-size: 16px;">{status_text}</span></p>
-            <p style="font-size: 14px;"><b>Pytest Exit Code:</b> {exit_status}</p>
+    <head>
+    <meta charset="utf-8">
+    </head>
+    <body style="font-family: Arial, sans-serif; color: #333333; margin: 0; padding: 20px; background-color: #ffffff;">
+        <div style="max-width: 800px; margin: auto;">
             
+            <!-- Cabeçalho -->
+            <h2 style="color: #2b6cb0; border-bottom: 2px solid #3182ce; padding-bottom: 8px; margin-bottom: 20px; font-size: 20px;">
+                📊 Automated Test Summary
+            </h2>
+
+            <!-- Bloco de Métricas Totais -->
+            <div style="background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 16px; margin-bottom: 24px; font-weight: bold; font-size: 13px; color: #4a5568;">
+                <span style="margin-right: 20px;">Total Executed: <span style="font-weight: normal; color: #1a202c;">{total_executed}</span></span>
+                <span style="color: #2f855a; margin-right: 20px;">Passed: <span style="font-weight: normal; color: #1a202c;">{passed_count}</span></span>
+                <span style="color: #c53030;">Failed: <span style="font-weight: normal; color: #1a202c;">{failed_count}</span></span>
+            </div>
+
             {ai_section_html}
-            
-            <h3 style="margin-top: 25px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">API Requests & Responses (Allure Trace Match)</h3>
-            {traces_html}
-            
-            <p style="font-size: 11px; color: #888; margin-top: 30px; text-align: center; border-top: 1px solid #eaeaea;">Generated automatically by FP&A Automation Framework.</p>
+
+            <!-- Tabela de Resultados -->
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+                <thead>
+                    <tr style="background-color: #3182ce; color: #ffffff;">
+                        <th style="padding: 10px 12px; border-top-left-radius: 4px; font-weight: 600;">Test Name / IDs</th>
+                        <th style="padding: 10px 12px; font-weight: 600;">Result</th>
+                        <th style="padding: 10px 12px; border-top-right-radius: 4px; font-weight: 600;">Error Failure Reason</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows_html}
+                </tbody>
+            </table>
+
+            <p style="font-size: 11px; color: #a0aec0; margin-top: 30px; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 15px;">
+                Generated automatically by FP&A Automation Framework &bull; Powered by Gemini AI
+            </p>
         </div>
     </body>
     </html>
     """
 
     msg = EmailMessage()
-    msg['Subject'] = f"FP&A Execution Report - [{status_text}]"
+    msg['Subject'] = f"Automated Test Summary - [{status_text}]"
     msg['From'] = sender
     msg['To'] = receiver
     msg.set_content(f"Test run completed with status: {status_text}.")
