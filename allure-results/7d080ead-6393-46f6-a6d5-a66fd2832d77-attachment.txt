@@ -1,0 +1,3 @@
+URL: https://httpbin.org/status/200
+Method: GET
+Payload: None

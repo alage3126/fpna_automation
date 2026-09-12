@@ -1,0 +1,1 @@
+{"uuid": "081a120c-7608-459a-a761-8840168044c5", "children": ["3a97af34-8573-41cc-bd5a-5cbdbc832f29"], "befores": [{"name": "device", "status": "passed", "start": 1789214542540, "stop": 1789214542540}], "afters": [{"name": "device::<lambda>", "start": 1789214544686}], "start": 1789214542540, "stop": 1789214544686}
