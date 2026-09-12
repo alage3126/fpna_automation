@@ -2,7 +2,7 @@
 import pytest
 import requests
 import allure
-from utils.notifier import record_api_trace, send_execution_email
+from utils.notifier import record_api_trace, record_test_outcome, send_execution_email
 
 @pytest.fixture(scope="session")
 def api_base_url():
@@ -50,6 +50,25 @@ def api_client(api_base_url):
 
     return AllureRequestsSession()
 
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    report = outcome.get_result()
+
+    if report.when == "call":
+        test_name = item.name
+        is_passed = report.passed
+        error_message = "-"
+        
+        if not is_passed:
+            # Extrai apenas a mensagem limpa da asserção, ignorando o traceback gigante
+            if hasattr(report, "longrepr") and hasattr(report.longrepr, "reprcrash"):
+                error_message = report.longrepr.reprcrash.message
+            else:
+                error_message = str(report.longrepr)
+
+        record_test_outcome(test_name, is_passed, error_message)
+
 def pytest_sessionfinish(session, exitstatus):
-    """Automatically trigger unified HTML email with traces after pytest finishes."""
+    """Trigger unified HTML email after pytest finishes."""
     send_execution_email(exitstatus)

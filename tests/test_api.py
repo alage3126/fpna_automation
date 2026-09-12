@@ -1,7 +1,6 @@
 # tests/test_api.py
 import allure
 import pytest
-from utils.notifier import record_test_failure
 
 @allure.epic("FP&A Backend Integration")
 @allure.feature("Data Warehouse & ERP Synchronization")
@@ -34,9 +33,5 @@ def test_create_financial_post(api_client):
         response = api_client.post("https://jsonplaceholder.typicode.com/posts", json=payload)
     
     with allure.step("Validate post creation response code and payload structure"):
-        try:
-            # Forçamos uma falha intencional alterando o status esperado para 200 (sendo que o JSONPlaceholder retorna 201)
-            assert response.status_code == 200, f"Ledger synchronization mismatch: Expected HTTP 200 OK for financial ledger commit, but remote ERP gateway returned HTTP {response.status_code} with payload structure error."
-        except AssertionError as e:
-            record_test_failure(str(e))
-            raise e
+        # Asserção direta: O jsonplaceholder devolve 201, mas exigimos 200 para forçar falha e testar o relatório
+        assert response.status_code == 200, f"Ledger synchronization mismatch: Expected HTTP 200 OK for financial ledger commit, but remote ERP gateway returned HTTP {response.status_code} with payload structure error."

@@ -9,12 +9,12 @@ def generate_root_cause_analysis(test_failure_logs: str) -> str:
     client = genai.Client(api_key=api_key)
     
     prompt = f"""
-    You are an expert FP&A Software Engineer and QA Automation Lead. 
-    Analyze the following test failure trace data from our automated financial transaction pipeline. 
-    Provide a concise, direct, business-impact-driven root-cause summary (maximum 3 sentences) explaining why the test failed and what broke in the ledger calculation or API payload:
+        Act as a senior QA Automation Lead and FP&A Engineer. Analyze the test error below and provide an ULTRA-SHORT response (maximum 2 sentences). 
+        Be direct: focus solely on what broke in the API payload or ledger calculation and its business impact. No introductory filler.
 
-    {test_failure_logs}
-    """
+        Error:
+        {test_failure_logs}
+        """
 
     try:
         response = client.models.generate_content(

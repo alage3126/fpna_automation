@@ -1,0 +1,7 @@
+Status Code: 201
+Body: {
+  "title": "Q3 Forecast Adjustment",
+  "body": "Automated ledger entry for regional revenue variance.",
+  "userId": 42,
+  "id": 101
+}

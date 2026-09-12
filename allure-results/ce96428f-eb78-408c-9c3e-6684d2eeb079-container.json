@@ -1,0 +1,1 @@
+{"uuid": "051e0997-4e06-4e54-8431-80c7c739df94", "befores": [{"name": "browser_name", "status": "passed", "start": 1789253889943, "stop": 1789253889943}], "afters": [{"name": "browser_name::<lambda>", "start": 1789253892188}], "start": 1789253889943, "stop": 1789253892188}
