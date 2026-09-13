@@ -1,0 +1,5 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","4924","Verify end-to-end user login workflow and secure dashboard entry","tests","2026-09-13","passed","2026-09-13","","test_ui","",""
+"TEST 2: Forçado a falhar (FAILED) para testar a IA e o report","427","Verify creation of financial post/report entry","tests","2026-09-13","failed","2026-09-13","","test_api","",""
+"","8","test_dashboard_ui_renders_metrics[chromium]","tests","2026-09-12","broken","2026-09-12","","test_ui","",""
+"TEST 1: Deve passar com sucesso (PASSED)","685","Verify financial metrics endpoint with full HTTP tracing","tests","2026-09-13","passed","2026-09-13","","test_api","",""

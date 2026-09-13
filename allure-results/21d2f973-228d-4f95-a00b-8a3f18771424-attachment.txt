@@ -1,0 +1,3 @@
+URL: https://jsonplaceholder.typicode.com/posts
+Method: POST
+Payload: {'title': 'Q3 Forecast Adjustment', 'body': 'Automated ledger entry for regional revenue variance.', 'userId': 42}

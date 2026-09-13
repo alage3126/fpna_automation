@@ -1,0 +1,23 @@
+Status Code: 200
+Headers: {'Date': 'Sat, 12 Sep 2026 12:02:22 GMT', 'Content-Type': 'application/json', 'Content-Length': '429', 'Connection': 'keep-alive', 'Server': 'gunicorn/19.9.0', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Credentials': 'true'}
+Body: {
+  "slideshow": {
+    "author": "Yours Truly", 
+    "date": "date of publication", 
+    "slides": [
+      {
+        "title": "Wake up to WonderWidgets!", 
+        "type": "all"
+      }, 
+      {
+        "items": [
+          "Why <em>WonderWidgets</em> are great", 
+          "Who <em>buys</em> WonderWidgets"
+        ], 
+        "title": "Overview", 
+        "type": "all"
+      }
+    ], 
+    "title": "Sample Slide Show"
+  }
+}
